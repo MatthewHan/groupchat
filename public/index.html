@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Group Chat</title>
+     <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="/css/bootstrap-theme.min.css">
+    <!-- jQuery -->
+    <script src="/js/jquery.min.js"></script>
+    <!-- Bootstrap specific javascript functions -->
+    <script src="/js/bootstrap.min.js"></script>
+    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type ="text/javascript">
+        $(document).ready(function (){
+            var socket = io.connect();
+            var name = prompt("Please enter a name");
+            socket.emit("new_user",{name:name});
+
+            socket.on('load_users',function(users){
+                $('#users').empty();
+                console.log(users);
+                for(index in users.users){
+                    $('#users').append("<p>" + users.users[index].name + "</p>")
+                }
+            })
+            socket.on('user_exists',function(message){
+                name = prompt("Name Taken, please choose another name");
+                socket.emit("new_user",{name:name});
+            })
+
+            $('#messagesubmit').click(function(){
+                var message = $('#message').val();
+                socket.emit("new_message", {message:message,name});
+                $('#message').val('');
+            })
+
+            socket.on('load_messages',function(messages){
+                $('#messages').empty();
+                //console.log(messages);
+                for(index in messages.messages){
+                    $('#messages').append("<p><label class='text-muted'>" + messages.messages[index].name + "</label>: " + messages.messages[index].message + "</p>")
+                }
+            })
+        })
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row " style="padding-top:40px;">
+            <div class="col-md-8">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        Group Chat
+                    </div>
+                    <div id = "messages" class="panel-body">
+                    </div>
+                    <div class="panel-footer">
+                        <div class="input-group">
+                            <input id = 'message' type="text" class="form-control" placeholder="Enter Message" />
+                            <span class="input-group-btn">
+                                <button id = "messagesubmit" class="btn btn-info" type="button">Send</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        Users
+                    </div>
+                    <div id = "users" class="panel-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
